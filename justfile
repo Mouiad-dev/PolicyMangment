@@ -18,3 +18,7 @@ check:
 # Run the tests
 test:
     uv run pytest
+
+# Run the app with autoreload (http://localhost:8000)
+dev:
+    uv run uvicorn policydesk.main:create_app --factory --reload
