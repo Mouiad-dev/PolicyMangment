@@ -5,6 +5,7 @@ from fastapi import FastAPI
 
 from policydesk.core.config import get_settings
 from policydesk.core.db.session import Database
+from policydesk.core.errors import register_error_handlers
 from policydesk.routers import add_routers
 
 
@@ -21,5 +22,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[dict[str, object]]:
 def create_app() -> FastAPI:
     """Build and return the FastAPI app (Factory)."""
     app = FastAPI(title="PolicyDesk", lifespan=lifespan)
+    register_error_handlers(app)
     add_routers(app)
     return app
