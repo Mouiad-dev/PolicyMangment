@@ -10,6 +10,7 @@ Understanding is the goal. A small step I understand beats a big step I don't.
 - Always reply in **simple english a1 level**. Keep technical terms in **simple English** (session, flush, commit, Unit of Work…).
 - Explain from zero. Never assume I know a word. Use small examples and simple diagrams (ASCII is fine).
 - Code, file names, commit messages and code comments are in English.
+- **Comments: max 2 lines**, and only when the code is not clear on its own. No long docstrings or paragraph comments in code. Explain the long version to me in chat, not in the file.
 
 ## 2. The approval gate (most important rule)
 **Never create, edit, delete or run anything that changes the project before I approve.**

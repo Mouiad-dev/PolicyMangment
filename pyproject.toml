@@ -3,7 +3,10 @@ name = "policydesk"
 version = "0.1.0"
 description = "PolicyDesk — car and home insurance app (learning project)."
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "pydantic>=2.9",
+    "pydantic-settings>=2.5",
+]
 
 [dependency-groups]
 dev = [
