@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual env
+.venv/
+
+# Caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local env files (keep .env.example and .env.test in git)
+.env
+.env.local
+
+# IDE (PyCharm) settings
+.idea/
