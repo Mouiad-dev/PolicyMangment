@@ -41,8 +41,6 @@ class DatabaseSettings(BaseModel):
     pool: PoolSettings = Field(default_factory=PoolSettings)
     statement_timeout_ms: int = 10_000
     idle_tx_timeout_ms: int = 30_000
-    # TODO:  Pool budget (lesson 13), used when we build the engine in M0.4:
-    #  workers x (pool.size + pool.max_overflow) + workers + admin < max_connections
 
 
 class MailSettings(BaseModel):
@@ -92,6 +90,15 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> list[str]:
         """Split the comma string into a clean list for CORS middleware."""
         return [part.strip() for part in self.cors_origins.split(",") if part.strip()]
+
+    @property
+    def database_url(self) -> str:
+        """Async SQLAlchemy URL built from the db settings."""
+        db = self.db
+        return (
+            f"{db.driver}://{db.user}:{db.password.get_secret_value()}"
+            f"@{db.host}:{db.port}/{db.name}"
+        )
 
     @field_validator("log_level", mode="before")
     @classmethod

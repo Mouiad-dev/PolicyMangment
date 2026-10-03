@@ -3,13 +3,19 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from policydesk.core.config import get_settings
+from policydesk.core.db.session import Database
 from policydesk.routers import add_routers
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[dict[str, object]]:
-    """Start/stop hook. The DB engine is created here in M0.4."""
-    yield {}
+    """Open the DB engine on startup, dispose it on shutdown."""
+    database = Database(get_settings())
+    try:
+        yield {"database": database}
+    finally:
+        await database.dispose()
 
 
 def create_app() -> FastAPI:

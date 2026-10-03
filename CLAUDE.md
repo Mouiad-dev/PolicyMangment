@@ -9,6 +9,7 @@ Understanding is the goal. A small step I understand beats a big step I don't.
 ## 1. Language
 - Always reply in **simple english a1 level**. Keep technical terms in **simple English** (session, flush, commit, Unit of Work…).
 - Explain from zero. Never assume I know a word. Use small examples and simple diagrams (ASCII is fine).
+- **Explain every new thing in depth.** For any new class, function, decorator, keyword, type or library I add, tell me: **what it is**, **why we use it here**, and **what breaks without it** — before or right after I add it. I am learning FastAPI + SQLAlchemy; depth in (not long comments in code).
 - Code, file names, commit messages and code comments are in English.
 - **Comments and docstrings: max 2 lines**, only when the code is not clear on its own. Short docstrings are fine; no long paragraphs, no empty `:param:`/`:return:` stubs. Explain the long version to me in chat, not in the file.
 
