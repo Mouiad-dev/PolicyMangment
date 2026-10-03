@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from policydesk.core.config import get_settings
 from policydesk.core.db.session import Database
 from policydesk.core.errors import register_error_handlers
+from policydesk.core.loggers import RequestIdMiddleware, configure_logging
 from policydesk.routers import add_routers
 
 
@@ -21,7 +22,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[dict[str, object]]:
 
 def create_app() -> FastAPI:
     """Build and return the FastAPI app (Factory)."""
+    configure_logging(get_settings())
     app = FastAPI(title="PolicyDesk", lifespan=lifespan)
     register_error_handlers(app)
+    app.add_middleware(RequestIdMiddleware)
     add_routers(app)
     return app
