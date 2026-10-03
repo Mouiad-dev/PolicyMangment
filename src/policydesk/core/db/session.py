@@ -16,7 +16,7 @@ class Database:
 
     def __init__(self, settings: Settings) -> None:
         db = settings.db
-        #TODO: Pool budget: servers x workers x (size + overflow) + admin < max_connections
+        # TODO: Pool budget: servers x workers x (size + overflow) + admin < max_connections
         self._engine: AsyncEngine = create_async_engine(
             settings.database_url,
             pool_size=db.pool.size,
