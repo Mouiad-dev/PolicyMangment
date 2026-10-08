@@ -7,6 +7,7 @@ import pytest
 import pytest_asyncio
 from alembic import command
 from alembic.config import Config
+from dotenv import dotenv_values
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
@@ -23,7 +24,14 @@ def pytest_configure() -> None:
     name = get_settings().db.name
     if not name.endswith("_test"):
         os.environ["DB__NAME"] = f"{name}_test"
+    if "DB__PORT" not in os.environ:  # CI sets its own; else the compose postgres_test port
+        os.environ["DB__PORT"] = _env_or_dotenv("TEST_DB_HOST_PORT", "5433")
     get_settings.cache_clear()
+
+
+def _env_or_dotenv(key: str, default: str) -> str:
+    """Same lookup as compose: shell env first, then .env, then the default."""
+    return os.environ.get(key) or dotenv_values(".env").get(key) or default
 
 
 def _alembic_config() -> Config:
@@ -41,6 +49,8 @@ async def db_engine() -> AsyncIterator[AsyncEngine]:
             pass
     except Exception:
         await engine.dispose()
+        if os.environ.get("CI"):  # GitHub sets CI=true: a missing DB must fail, not skip
+            pytest.fail("Postgres not available in CI")
         pytest.skip("Postgres not available")
     config = _alembic_config()
     # env.py calls asyncio.run(), which cannot run inside our loop, so use a thread.

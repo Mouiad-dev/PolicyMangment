@@ -25,7 +25,7 @@ def test_mixin_columns_present() -> None:
 
 
 def test_pk_name_follows_convention() -> None:
-    assert SampleThing.__table__.primary_key.name == "pk_sample_thing"
+    assert Base.metadata.tables["sample_thing"].primary_key.name == "pk_sample_thing"
 
 
 def test_camel_to_snake() -> None:

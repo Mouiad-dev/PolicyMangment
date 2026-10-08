@@ -1,0 +1,4 @@
+# Words that look like typos but are correct here.
+[default.extend-words]
+FND = "FND"            # SRS ID prefix: FND-05 = Foundation requirement 5
+selectin = "selectin"  # SQLAlchemy loader: selectinload / lazy="selectin"

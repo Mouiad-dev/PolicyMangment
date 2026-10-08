@@ -1,0 +1,65 @@
+# Local services. Start with `just up`. Values come from .env (defaults after ":-").
+# Laptop ports are configurable; names inside the Docker network (postgres, mailhog) are fixed.
+name: policydesk
+
+services:
+  api:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "${API_HOST_PORT:-8000}:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DB__HOST: postgres
+      DB__PORT: "5432"
+      MAIL__HOST: mailhog
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DB__USER:-app}
+      POSTGRES_PASSWORD: ${DB__PASSWORD:-app}
+      POSTGRES_DB: ${DB__NAME:-policydesk}
+    ports:
+      - "${DB_HOST_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Test DB: data in RAM (tmpfs) -> fast, and empty after every restart.
+  postgres_test:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DB__USER:-app}
+      POSTGRES_PASSWORD: ${DB__PASSWORD:-app}
+      POSTGRES_DB: ${DB__NAME:-policydesk}_test
+    ports:
+      - "${TEST_DB_HOST_PORT:-5433}:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "${MAIL_SMTP_HOST_PORT:-1025}:1025" # SMTP
+      - "${MAIL_UI_HOST_PORT:-8025}:8025" # web inbox
+
+volumes:
+  pgdata:

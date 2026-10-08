@@ -1,5 +1,7 @@
 # Runs before every commit. See https://pre-commit.com
 # After `just install`, enable it once with: uv run pre-commit install
+# docs/ holds Mouiad's notes (Arabic + English): no hook may touch them.
+exclude: ^docs/
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.6
@@ -12,6 +14,7 @@ repos:
     rev: v1.29.4
     hooks:
       - id: typos
+        args: [--force-exclude] # report only; the default --write-changes rewrote FND -> FIND
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0

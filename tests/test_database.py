@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy.pool import AsyncAdaptedQueuePool
 
 from policydesk.core.config import Settings
 from policydesk.core.db.session import Database
@@ -17,6 +18,8 @@ def test_url_built_from_settings(monkeypatch: pytest.MonkeyPatch) -> None:
 async def test_engine_uses_pool_settings() -> None:
     db = Database(Settings())
     try:
-        assert db.engine.sync_engine.pool.size() == 3
+        pool = db.engine.sync_engine.pool
+        assert isinstance(pool, AsyncAdaptedQueuePool)
+        assert pool.size() == 3
     finally:
         await db.dispose()

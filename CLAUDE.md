@@ -121,7 +121,6 @@ Reference: https://github.com/HHHMHA/fastapi-orderly
 - No N+1 (query-count test where lists or detail pages load related data).
 - `docs/PROGRESS.md` updated and my check question answered.
 
-## 10. Commands (after step 1 exists), use just to wrap up the 
+## 10. Commands (after step 1 exists), use just to wrap up the
 `just install` · `just up` / `just down` · `just dev` · `just test` · `just check` ·
 `just migration msg="..."` · `just migrate` · `just worker`
-

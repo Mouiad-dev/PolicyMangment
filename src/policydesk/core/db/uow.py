@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from types import TracebackType
+from typing import Self
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -7,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 class AbstractUnitOfWork(ABC):
     """One transaction boundary. Exit without commit = rollback."""
 
-    async def __aenter__(self) -> "AbstractUnitOfWork":
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(
@@ -29,7 +30,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
-    async def __aenter__(self) -> "SqlAlchemyUnitOfWork":
+    async def __aenter__(self) -> Self:
         self.session = self._session_factory()
         return self
 

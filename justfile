@@ -13,7 +13,7 @@ install:
 check:
     uv run ruff check src tests
     uv run ruff format --check src tests
-    uv run mypy --strict src
+    uv run mypy --strict src tests
 
 # Run the tests
 test:
@@ -34,3 +34,41 @@ migrate:
 # Undo the last migration
 downgrade:
     uv run alembic downgrade -1
+
+# --- Docker ---
+
+# Build and start all services in the background
+up:
+    docker compose up -d --build
+
+# Stop all services (data in the postgres volume is kept)
+down:
+    docker compose down
+
+# Show the services and their health
+ps:
+    docker compose ps
+
+# Follow the logs: `just logs` (all) or `just logs api`
+logs service="":
+    docker compose logs -f {{service}}
+
+# Open a bash shell inside the api container
+bash:
+    docker compose exec api bash
+
+# IPython with all models loaded, in the api container: `just shell` or `just shell --sql`
+shell *args:
+    docker compose exec api python -m policydesk.shell {{args}}
+
+# The same shell on your laptop (no Docker for the app; DB from .env)
+shell-local *args:
+    uv run python -m policydesk.shell {{args}}
+
+# Run Python inside the api container: `just py` (REPL) or `just py -m pytest --version`
+py *args:
+    docker compose exec api python {{args}}
+
+# Docker Desktop's debug shell (adds tools like curl, vim to the slim image)
+debug:
+    docker debug policydesk-api-1

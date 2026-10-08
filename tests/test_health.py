@@ -2,6 +2,7 @@ from collections.abc import AsyncIterator
 from typing import Any
 
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
 from policydesk.core.db.session import get_session
 from policydesk.main import create_app
@@ -46,3 +47,9 @@ def test_health_ready_down() -> None:
         response = client.get("/health/ready")
     assert response.status_code == 503
     assert response.json() == {"status": "error", "database": "down"}
+
+
+async def test_health_ready_with_real_db(client: AsyncClient) -> None:
+    response = await client.get("/health/ready")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "database": "ok"}
