@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Uuid, func, text
+from sqlalchemy import BigInteger, ForeignKey, Identity, Uuid, func, text
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 
@@ -15,18 +15,23 @@ class TableNameMixin:
 
 
 class IntIdMixin:
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
 
 
 class UuidIdMixin:
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, server_default=func.gen_random_uuid())
 
 
-class TimestampMixin:
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
+class CreatedAtMixin:
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class UpdatedAtMixin:
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+
+class TimestampMixin(CreatedAtMixin, UpdatedAtMixin):
+    """created_at + updated_at (most tables)."""
 
 
 class ActivatorMixin:

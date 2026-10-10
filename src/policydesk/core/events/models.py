@@ -18,10 +18,10 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from policydesk.core.db.base import Base
-from policydesk.core.db.mixins import TableNameMixin, UuidIdMixin
+from policydesk.core.db.mixins import CreatedAtMixin, TableNameMixin, UuidIdMixin
 
 
-class OutboxMessage(UuidIdMixin, TableNameMixin, Base):
+class OutboxMessage(UuidIdMixin, CreatedAtMixin, TableNameMixin, Base):
     __table_args__ = (
         CheckConstraint("status IN ('PENDING','SENT','FAILED')", name="status"),
         CheckConstraint("attempts >= 0", name="attempts"),
@@ -43,7 +43,6 @@ class OutboxMessage(UuidIdMixin, TableNameMixin, Base):
     attempts: Mapped[int] = mapped_column(Integer, server_default=text("0"))
     last_error: Mapped[str | None] = mapped_column(Text)
     processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class ProcessedEvent(TableNameMixin, Base):
