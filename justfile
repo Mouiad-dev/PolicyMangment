@@ -11,9 +11,17 @@ install:
 
 # Lint, format-check and type-check (our code only: src + tests)
 check:
-    uv run ruff check src tests
-    uv run ruff format --check src tests
-    uv run mypy --strict src tests
+    uv run ruff check src tests scripts .claude/hooks
+    uv run ruff format --check src tests scripts .claude/hooks
+    uv run mypy --strict src tests scripts .claude/hooks
+
+# Check our FastAPI + SQLAlchemy rules on all of src/ (rules PD001-PD012)
+review *args:
+    uv run python scripts/review_rules.py {{args}}
+
+# The same review, but only for files changed compared to origin/master
+review-diff:
+    uv run python scripts/review_rules.py --base origin/master $(git diff --name-only --diff-filter=d origin/master -- '*.py')
 
 # Run the tests
 test:

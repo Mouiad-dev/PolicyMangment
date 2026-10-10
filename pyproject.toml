@@ -55,3 +55,6 @@ asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
 testpaths = ["tests"]
 filterwarnings = ["error"]
+markers = [
+    "query_count: asserts a fixed number of SQL queries (N+1 guard); the Claude Stop hook runs these",
+]
