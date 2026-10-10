@@ -64,48 +64,24 @@ Also never, without asking first: install or remove packages (`uv add`), run mig
   > `fastapi.md`. Tell me about the conflict and ask; do not choose silently.
 - If a doc is wrong or missing something, tell me and suggest the edit. Do not edit the docs without approval.
 
-## 5. The foundation: inspired by fastapi-orderly, never copied
-Reference: https://github.com/HHHMHA/fastapi-orderly
-- You may read it **to learn ideas only**: `src/` layout with `core/`, `shared/`, `modules/`; module files
-  `models.py`, `dtos.py`, `endpoints.py`; `create_app()` + lifespan; nested pydantic-settings with `__`;
-  `Base` with a naming convention; async Alembic with a model registry; tests that migrate once and use a
-  savepoint per test.
-- **Never copy files or code blocks from it.** Write every file fresh, for PolicyDesk, and explain each part.
-- Do better where it is weak (SRS section 00, table "Ideas we take … and what we do better"):
-  `lru_cache` on a function that takes `Settings` (not hashable) → make the hasher once at start-up;
-  dead `overridden_tablename` → no dead code; no pool sizing/timeouts → pool + Postgres timeouts;
-  health without a DB check → `/health/live` + `/health/ready`; commented-out request logging → turn it on;
-  unused Redis → only services we use; no error handling and no Unit of Work → add both.
+## 5. Standards live in `.claude/rules/` (loaded only when matching files are touched)
+| File | Loads for | Content |
+|---|---|---|
+| `.claude/rules/fastapi.md` | `**/*.py` | Stack, layers, async rules, errors, events, fastapi-orderly "do better" |
+| `.claude/rules/sqlalchemy.md` | models, repositories, `core/db`, Alembic | Constraints, money, N+1, migrations |
+| `.claude/rules/patterns.md` | `src/**/*.py` | SRS 22 patterns and mixins |
+| `.claude/rules/testing.md` | `tests/**` | Definition of done, how we test |
 
-## 6. Stack and conventions
-- Python 3.13, **uv**, FastAPI, **SQLAlchemy 2.0 async + asyncpg**, Alembic, **PostgreSQL 16**, pytest +
-  pytest-asyncio, httpx `AsyncClient`, ruff, mypy `--strict`, pre-commit, Docker Compose.
-- **Layers:** `endpoints` (thin) → `service` (business logic) → `repository` (data access) → `models`.
-  Endpoints never touch the session. Services never call `commit()`; the **Unit of Work** commits.
-- **Models** hold domain rules (`policy.can_cancel(on)`), never integrations (no Stripe, no email).
-- **No N+1:** every query that returns related data sets `selectinload` / `joinedload` explicitly.
-  Tests may use `lazy="raise"` to catch hidden lazy loads.
-- **Constraints:** every FK, UNIQUE, NOT NULL and CHECK is defined and **named**; every FK has an index.
-- **Money:** `NUMERIC(12,2)` and `Decimal`, round half up. Never `float`.
-- **Async:** one engine per process (lifespan), `expire_on_commit=False`, never call Stripe/SMTP inside an
-  open transaction, `engine.dispose()` on shutdown.
-- **Events:** domain events go to the outbox in the same transaction; handlers are idempotent (`processed_event`).
-- Read-only screens may use selectors that return DTOs.
+## 6. Enforcement (hooks in `.claude/settings.json` run in every permission mode)
+- **Secrets:** `guard_secrets.py` blocks reading/writing `.env*` (not `.env.example` / `.env.test`), keys,
+  `secrets/`, and secret values in new text. Deny rules back it up.
+- **Migrations:** `guard_migrations.py` asks before editing a committed migration; `guard_prod.py` blocks
+  migrations against prod.
+- **Stop hook:** `on_stop.py` runs `pytest -m query_count` + `scripts/review_rules.py` when `.py` files
+  changed, and blocks the finish until they pass.
+- **CI:** the "Rules review" job must pass before a PR can merge into `master` (branch protection).
 
-## 7. Design patterns (SRS section 22) — only when they add clarity
-- **Repository** — one per aggregate, on a small `BaseRepository[ModelT]`.
-- **Strategy** — raters (`CarRater`, `HomeRater`), refund rules, referral rules, PDF renderers, payment gateways.
-- **Factory** — `create_app()`, `RaterFactory`, `PaymentGatewayFactory`, `EmailSenderFactory`, test data factories.
-  An unknown key raises a clear error, never returns `None`.
-- **Singleton only when needed** — `get_settings()` (lru_cache), the engine in lifespan state, the Stripe client.
-  Never for `AsyncSession`, Unit of Work or repositories. No `__new__` tricks; tests must be able to override it.
-- **Mixins always** for shared columns and helpers: `TableNameMixin`, `IntIdMixin`, `UuidIdMixin`,
-  `TimestampMixin`, `ActivatorMixin`, `VersionMixin`, `AuditMixin` (+ repository, DTO and test mixins).
-  One job per mixin, no `__init__`, `declared_attr` for FK columns, mixins before `Base`.
-- No god objects, no pattern for its own sake. If a pattern does not remove an if/else chain, a copy, or a
-  hard link to the outside world, do not use it — and tell me why.
-
-## 8. Where we are and the order of work
+## 7. Where we are and the order of work
 - Always start a session by reading `docs/PROGRESS.md` and telling me where we stopped.
 - **M0 — Foundation** (SRS 00 + 22), one row = one step, in this order:
   1 project tooling · 2 settings · 3 app factory + health · 4 database + mixins · 5 Alembic ·
@@ -114,13 +90,7 @@ Reference: https://github.com/HHHMHA/fastapi-orderly
 - Then **M1 → M10** from the SRS "Build plan" (section 20). Never start a milestone before the previous one
   meets its "Done when".
 
-## 9. Definition of done for every step
-- Tests written first for services; all tests pass.
-- `ruff check`, `ruff format --check`, `mypy --strict` pass.
-- For DB changes: one reviewed Alembic migration, `alembic upgrade head` and `alembic check` pass.
-- No N+1 (query-count test where lists or detail pages load related data).
-- `docs/PROGRESS.md` updated and my check question answered.
-
-## 10. Commands (after step 1 exists), use just to wrap up the
-`just install` · `just up` / `just down` · `just dev` · `just test` · `just check` ·
-`just migration msg="..."` · `just migrate` · `just worker`
+## 8. Commands (use `just`)
+`just install` · `just up` / `just down` · `just dev` · `just test` · `just check` · `just review` ·
+`just review-diff` · `just makemigrations msg="..."` · `just migrate` · `just ps` ·
+`docker compose logs --tail 200 <service>` (never `-f`: it does not end)

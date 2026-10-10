@@ -25,7 +25,25 @@ jobs:
       - name: pre-commit (ruff, typos, yaml, toml, whitespace)
         run: uv run pre-commit run --all-files --show-diff-on-failure
       - name: mypy
-        run: uv run mypy --strict src tests
+        run: uv run mypy --strict src tests scripts .claude/hooks
+
+  review:
+    name: Rules review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # PD009 compares migrations with the PR base branch
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.7.9"
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: FastAPI + SQLAlchemy rules (annotations on the PR diff)
+        run: >-
+          uv run python scripts/review_rules.py --format github
+          ${{ github.event_name == 'pull_request' && format('--base origin/{0}', github.base_ref) || '' }}
 
   test:
     name: Migrations and tests
