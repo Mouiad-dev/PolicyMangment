@@ -1,7 +1,8 @@
 import asyncio
 import os
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 import pytest_asyncio
@@ -9,6 +10,7 @@ from alembic import command
 from alembic.config import Config
 from dotenv import dotenv_values
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
@@ -17,6 +19,8 @@ from policydesk.core.db.session import get_session
 from policydesk.main import create_app
 
 _MIGRATIONS_DIR = Path(__file__).resolve().parents[1] / "src/policydesk/core/db/alembic"
+# Test-only savepoint noise; sql_log ignores it so counts show only real queries.
+_TRANSACTION_SQL = ("SAVEPOINT", "RELEASE SAVEPOINT", "ROLLBACK TO SAVEPOINT")
 
 
 def pytest_configure() -> None:
@@ -75,6 +79,20 @@ async def db_session(db_connection: AsyncConnection) -> AsyncIterator[AsyncSessi
         bind=db_connection, join_transaction_mode="create_savepoint", expire_on_commit=False
     ) as session:
         yield session
+
+
+@pytest.fixture
+def sql_log(db_engine: AsyncEngine) -> Iterator[list[str]]:
+    """Every SQL statement sent while the test runs, in order (N+1 guard)."""
+    statements: list[str] = []
+
+    def _record(_conn: Any, _cursor: Any, statement: str, *_args: Any) -> None:
+        if not statement.lstrip().upper().startswith(_TRANSACTION_SQL):
+            statements.append(statement)
+
+    event.listen(db_engine.sync_engine, "before_cursor_execute", _record)
+    yield statements
+    event.remove(db_engine.sync_engine, "before_cursor_execute", _record)
 
 
 @pytest_asyncio.fixture
