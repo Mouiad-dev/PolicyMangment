@@ -25,7 +25,8 @@ For every task, follow these 6 steps in order:
    - the design choice and the patterns used (Repository / Strategy / Factory / Singleton / Mixin / UoW), and
      one alternative you did not choose and why;
    - the tests you will write first, and the commands I will run to check it;
-   - which lesson in `SQLAlchemy_FastAPI.md` or chapter in `fastapi.md` this connects to.
+   - which lesson in `SQLAlchemy_FastAPI.md` or chapter in `fastapi.md` this connects to;
+   - a **Whiteboard** for the step (see §3, "Whiteboard rule").
    Then **stop and wait**. Approval words:, **"OK"**, **"approve"**, or **"H5"**.
    Anything else (a question, "maybe", silence) is **not** approval.
 3. **Build** — Do only what I approved. Nothing extra. If you find you need a change outside the plan,
@@ -45,9 +46,18 @@ Also never, without asking first: install or remove packages (`uv add`), run mig
 `git commit` / `git push`, delete files, change CI, or touch `.env` files.
 
 ## 3. When I write the code myself
-- always do not write code until i ask you, or I'll write the code, . Guide me with hints in levels:
+- **I write the code.** You give me a **build sheet** (files, fields, rules, order of work) and do not write
+  project code. Guide me with hints in levels:
   **H1** concept → **H2** API name → **H3** pseudo-code → **H4** one line. Give the next level only if I ask.
-- **H5** means: you may write the code (after the plan, as in §2).
+- **H5** means: you may write the code (after the plan, as in §2). I say it only when I am very lost.
+- **Whiteboard rule (from M1.2, always):** explain every step on a **Whiteboard**, not only in chat:
+  - **flow** — how the parts talk (request → endpoint → service → UoW → repository → DB, or Alembic → DB);
+  - **fields** — tables, columns, types, constraints, relations;
+  - **API** — endpoints, methods, DTOs in/out, status codes, errors;
+  - **server** — services, repositories, events/outbox, workers, outside services (Stripe, email).
+  Use only the parts the step has. Before code exists, draw on the Whiteboard **scratchpad**; after I write
+  code, make a Whiteboard **review** of the diff. If Whiteboard is not running, tell me and wait.
+- Agents in `.claude/agents/`: `teacher` (learn a concept, hints only) and `reviewer` (review my code).
 - **Review**: when I ask for a review, list issues by severity (**bug / design / style**), explain **why**,
   point to the file and line, and **do not paste a corrected version**. Then ask me one question.
 
