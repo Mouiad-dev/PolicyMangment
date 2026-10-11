@@ -14,6 +14,7 @@ from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
+import policydesk.core.db.registry  # noqa: F401  (all models known, so string relationships resolve)
 from policydesk.core.config import get_settings
 from policydesk.core.db.session import get_session
 from policydesk.main import create_app
